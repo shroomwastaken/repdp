@@ -1,0 +1,9 @@
+[package]
+name = "repdp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.86"
+macros = { path = "./macros/" }
+once_cell = "1.19.0"
