@@ -10,12 +10,10 @@ therefore, when we read an SvcGameEvent we
 */
 
 use std::collections::HashMap;
-use once_cell::sync::OnceCell;
 
+use crate::parsing::DEMO_INFO;
 use crate::reader::BitReader;
 use crate::parseable::Parseable;
-
-pub static GAME_EVENT_LIST: OnceCell<Vec<GameEventDescriptor>> = OnceCell::new();
 
 #[derive(Debug)]
 pub enum GameEventKeyType {
@@ -58,13 +56,14 @@ pub struct GameEvent {
 
 impl GameEvent {
 	pub fn parse(r: &mut BitReader) -> anyhow::Result<GameEvent> {
+		let game_event_list: &Vec<GameEventDescriptor> = &DEMO_INFO.lock().unwrap().game_event_list;
 		let mut res: GameEvent = GameEvent {
 			key_values: HashMap::new(),
 		};
 
 		let event_id: i16 = i16::parse_amount(r, 9)?;
 		// game event list is hopefully populated by now
-		let descriptor: &GameEventDescriptor = &GAME_EVENT_LIST.get().unwrap()[event_id as usize];
+		let descriptor: &GameEventDescriptor = &game_event_list[event_id as usize];
 		for (name, value_type) in &descriptor.key_definitions {
 			res.key_values.insert(
 				name.to_string(), match value_type {

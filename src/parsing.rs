@@ -1,8 +1,8 @@
-use once_cell::sync::OnceCell;
-
+use lazy_static::lazy_static;
+use std::sync::{Arc, Mutex};
 use crate::error::ParserError;
 use crate::parseable::Parseable;
-use crate::demo::{Demo, Game, Header};
+use crate::demo::{Demo, Game, DemoInfo, Header};
 use crate::reader::BitReader;
 use crate::packet::*;
 use crate::packet::consts::*;
@@ -10,11 +10,21 @@ use crate::utils::Vec3;
 use crate::net_svc_messages::parse_net_svc_messages;
 
 // to check while parsing
-// these WILL be populated by the point where they need to be checked
-// we can just do .get().unwrap() without a care in the world
-pub static GAME: OnceCell<Game> = OnceCell::new();
-pub static DEMO_PROTOCOL: OnceCell<i32> = OnceCell::new();
-pub static NETWORK_PROTOCOL: OnceCell<i32> = OnceCell::new();
+// this WILL be populated by the point where they need to be checked
+// i hate having to do .lock().unwrap() every time but that's seemingly what i have to do
+lazy_static! {
+	pub static ref DEMO_INFO: Arc<Mutex<DemoInfo>> = Arc::new(
+		Mutex::new(
+			DemoInfo {
+				net_svc_message_bits: 0,
+				net_protocol: 0,
+				demo_protocol: 0,
+				game: Game::PORTAL_5135,
+				game_event_list: vec![],
+			}
+		)
+	);
+}
 
 pub fn parse_demo(r: &mut BitReader) -> anyhow::Result<Demo> {
 	let header: Header = Header::parse(r)?;
@@ -24,17 +34,23 @@ pub fn parse_demo(r: &mut BitReader) -> anyhow::Result<Demo> {
 		)).into());
 	}
 
-	match header.network_protocol {
-		14 => { let _ = GAME.set(Game::PORTAL_3420); }
-		15 => { let _ = GAME.set(Game::PORTAL_5135); }
-		24 => { let _ = GAME.set(Game::PORTAL_STEAMPIPE); }
-		_ => { return Err(ParserError::UnsupportedDemo(format!(
-			"network protocol {} not supported!", header.network_protocol
-		)).into()) }
-	}
+	let demo_info: DemoInfo = DemoInfo {
+		net_svc_message_bits: match header.network_protocol {
+			14 => { 5 },
+			_ => { 6 },
+		},
+		net_protocol: header.network_protocol,
+		demo_protocol: header.demo_protocol,
+		game: match header.network_protocol {
+			14 => { Game::PORTAL_3420 }
+			15 => { Game::PORTAL_5135 }
+			24 => { Game::PORTAL_STEAMPIPE }
+			_ => { return Err(ParserError::ParserError("unsupported network protocol".to_string()).into()) }
+		},
+		game_event_list: vec![],
+	};
 
-	let _ = DEMO_PROTOCOL.set(header.demo_protocol);
-	let _ = NETWORK_PROTOCOL.set(header.network_protocol);
+	*DEMO_INFO.lock().unwrap() = demo_info;
 
 	let demo: Demo = Demo {
 		header,

@@ -8,8 +8,8 @@ use macros::AutoParse;
 use crate::{
 	demo::Game,
 	parseable::Parseable,
-	parsing::{DEMO_PROTOCOL, GAME, NETWORK_PROTOCOL},
-	game_event::{GAME_EVENT_LIST, GameEventDescriptor, GameEvent},
+	parsing::DEMO_INFO,
+	game_event::{GameEventDescriptor, GameEvent},
 	reader::BitReader,
 	utils::log2_of_x_plus_one
 };
@@ -64,10 +64,11 @@ pub enum NetSvcMessage {
 }
 
 pub fn parse_net_svc_messages(r: &mut BitReader, size: usize) -> anyhow::Result<Vec<NetSvcMessage>> {
+	let type_size: usize = DEMO_INFO.lock().unwrap().net_svc_message_bits;
 	let mut messages: Vec<NetSvcMessage> = vec![];
 	let start_index: i32 = r.current as i32;
 	while ((start_index + size as i32) - r.current as i32) > 6 {
-		let msg_type: u8 = u8::parse_amount(r, 6)?;
+		let msg_type: u8 = u8::parse_amount(r, type_size)?;
 		let message: NetSvcMessage = NetSvcMessage::parse(r, msg_type)?;
 		messages.push(message);
 	}
@@ -192,6 +193,7 @@ pub struct SvcServerInfo {
 impl SvcServerInfo {
 	pub fn parse(r: &mut BitReader) -> anyhow::Result<SvcServerInfo> {
 		// i knooooow its uglyyy but theres nothing i can really do about it :(
+		let is_steampipe: bool = DEMO_INFO.lock().unwrap().game == Game::PORTAL_STEAMPIPE;
 		let res: SvcServerInfo = SvcServerInfo {
 			protocol: i16::parse(r)?,
 			server_count: i32::parse(r)?,
@@ -200,8 +202,8 @@ impl SvcServerInfo {
 			client_crc: i32::parse(r)?,
 			max_classes:  i16::parse(r)?,
 			tick_interval: f32::parse(r)?,
-			map_crc: if *GAME.get().unwrap() != Game::PORTAL_STEAMPIPE { Some(i32::parse(r)?) } else { None },
-			map_md5: if *GAME.get().unwrap() == Game::PORTAL_STEAMPIPE { Some(r.read_bytes(16)?) } else { None },
+			map_crc: if !is_steampipe { Some(i32::parse(r)?) } else { None },
+			map_md5: if is_steampipe { Some(r.read_bytes(16)?) } else { None },
 			player_slot: u8::parse(r)?,
 			max_clients: u8::parse(r)?,
 			platform: u8::parse(r)? as char,
@@ -209,7 +211,7 @@ impl SvcServerInfo {
 			map_name: String::parse(r)?,
 			sky_name: String::parse(r)?,
 			host_name: String::parse(r)?,
-			has_replay: if *GAME.get().unwrap() == Game::PORTAL_STEAMPIPE { Some(r.read_bool()?) } else { None }
+			has_replay: if is_steampipe { Some(r.read_bool()?) } else { None }
 		};
 		return Ok(res);
 	}
@@ -266,13 +268,15 @@ pub struct SvcCreateStringTable {
 
 impl SvcCreateStringTable {
 	pub fn parse(r: &mut BitReader) -> anyhow::Result<SvcCreateStringTable> {
+		let net_protocol: i32 = DEMO_INFO.lock().unwrap().net_protocol;
+		let demo_protocol: i32 = DEMO_INFO.lock().unwrap().demo_protocol;
 		let name: String = String::parse(r)?;
 		let max_entries: i16 = i16::parse(r)?;
 		let mut res: SvcCreateStringTable = SvcCreateStringTable {
 			name,
 			max_entries: max_entries.clone(),
 			num_entries: i32::parse_amount(r, log2_of_x_plus_one(max_entries as usize))?,
-			length: if *GAME.get().unwrap() == Game::PORTAL_STEAMPIPE { r.read_var_int32()? } else { i32::parse_amount(r, 20)? },
+			length: if net_protocol == 24 { r.read_var_int32()? } else { i32::parse_amount(r, 20)? },
 			user_data_fixed_size: bool::parse(r)?,
 			user_data_size: None,
 			user_data_size_bits: None,
@@ -284,8 +288,8 @@ impl SvcCreateStringTable {
 			res.user_data_size_bits = Some(u8::parse_amount(r, 4)?)
 		}
 
-		if *NETWORK_PROTOCOL.get().unwrap() >= 15 {
-			res.flags = r.read_byte(if *DEMO_PROTOCOL.get().unwrap() == 4 { 2 } else { 1 })?;
+		if net_protocol >= 15 {
+			res.flags = r.read_byte(if demo_protocol == 4 { 2 } else { 1 })?;
 		}
 
 		// TODO for way in the future: read string data
@@ -565,7 +569,7 @@ impl SvcTempEntities {
 	pub fn parse(r: &mut BitReader) -> anyhow::Result<SvcTempEntities> {
 		let res: SvcTempEntities = SvcTempEntities {
 			num_entries: u8::parse(r)?,
-			length: if *GAME.get().unwrap() == Game::PORTAL_STEAMPIPE { r.read_var_int32()? } else { i32::parse_amount(r, 17)? }
+			length: if DEMO_INFO.lock().unwrap().net_protocol == 24 { r.read_var_int32()? } else { i32::parse_amount(r, 17)? }
 		};
 		r.skip(res.length as usize)?;
 		return Ok(res);
@@ -582,7 +586,7 @@ impl SvcPrefetch {
 	pub fn parse(r: &mut BitReader) -> anyhow::Result<SvcPrefetch> {
 		let res: SvcPrefetch = SvcPrefetch {
 			sound_index: i16::parse_amount(
-				r, if *NETWORK_PROTOCOL.get().unwrap() == 24 { 14 } else { 13 }
+				r, if DEMO_INFO.lock().unwrap().net_protocol == 24 { 14 } else { 13 }
 			)?,
 		};
 		return Ok(res);
@@ -616,8 +620,7 @@ impl SvcGameEventList {
 		for _ in 0..res.events {
 			res.descriptor_list.push(GameEventDescriptor::parse(r)?);
 		}
-		// this message *should* appear only once so we can ignore the result
-		let _ = GAME_EVENT_LIST.set(res.descriptor_list.clone());
+		DEMO_INFO.lock().unwrap().game_event_list = res.descriptor_list.clone();
 		return Ok(res);
 	}
 }

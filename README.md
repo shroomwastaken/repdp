@@ -32,7 +32,7 @@ this is why you might think that this parser is really slow. it is not (that) sl
 
 `anyhow` - for easy error handling
 
-`once_cell` - easy to make global static variables
+`lazy_static` - global mutable static variables without unsafe (very annoying)
 
 ## alternatives and resources used
 this is definitely not the most complete portal demo parser out there, see these alternatives:

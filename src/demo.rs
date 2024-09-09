@@ -1,6 +1,6 @@
 use macros::AutoParse;
 use crate::parseable::Parseable;
-
+use crate::game_event::GameEventDescriptor;
 use crate::packet::Packet;
 
 // all major structs located here
@@ -40,4 +40,13 @@ pub enum Game {
 	PORTAL_5135,
 	PORTAL_3420,
 	PORTAL_STEAMPIPE,
+}
+
+// struct to hold all premade values that differ based on protocol version
+pub struct DemoInfo {
+	pub net_svc_message_bits: usize,
+	pub net_protocol: i32,
+	pub demo_protocol: i32,
+	pub game: Game,
+	pub game_event_list: Vec<GameEventDescriptor>,
 }
