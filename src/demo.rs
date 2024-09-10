@@ -1,4 +1,5 @@
 use macros::AutoParse;
+use crate::gen_dump_impl;
 use crate::parseable::Parseable;
 use crate::game_event::GameEventDescriptor;
 use crate::packet::Packet;
@@ -24,6 +25,8 @@ pub struct Header {
 	playback_frames: i32,
 	sign_on_length: i32,
 }
+
+gen_dump_impl!{ Header }
 
 
 #[derive(Debug)]

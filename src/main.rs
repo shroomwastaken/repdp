@@ -9,6 +9,7 @@ mod parseable; // the Parseable trait
 mod packet; // packet types and related types
 mod net_svc_messages; // net/svc message structs
 mod game_event; // for SvcGameEventList/SvcGameEvent
+mod dumper; // struct that controls dumping the demo's human-readable contents
 
 use std::time::Instant;
 
@@ -34,9 +35,14 @@ fn run() -> anyhow::Result<()> {
 
 	let start_time: Instant = Instant::now();
 	let demo: demo::Demo = parsing::parse_demo(&mut reader)?;
-	println!("took {:?} to parse", Instant::now().duration_since(start_time));
 
-	println!("{demo:#?}");
+	let mut dumper: dumper::Dumper = dumper::Dumper {
+		demo: &demo,
+		tabs: 0,
+		out: &mut std::io::stdout().lock(),
+	};
+	dumper.dump_header()?;
+	println!("took {:?} to parse", Instant::now().duration_since(start_time));
 
 	return Ok(());
 }
