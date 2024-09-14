@@ -1,11 +1,12 @@
+use std::collections::HashMap;
+use std::fmt::{self, write, Debug, Display, Formatter, Write};
 use macros::AutoParse;
-use crate::gen_dump_impl;
 use crate::parseable::Parseable;
 use crate::game_event::GameEventDescriptor;
+use crate::impl_display;
 use crate::packet::Packet;
 
-// all major structs located here
-
+/// All major structs are located here
 #[derive(Debug, Clone, AutoParse)]
 pub struct Header {
 	#[size(64)]
@@ -26,8 +27,7 @@ pub struct Header {
 	sign_on_length: i32,
 }
 
-gen_dump_impl!{ Header }
-
+impl_display!(Header);
 
 #[derive(Debug)]
 pub struct Demo {
@@ -35,7 +35,7 @@ pub struct Demo {
 	pub packets: Vec<Packet>
 }
 
-// extra stuff to help us parse aand be more clear about things
+// extra stuff to help us parse and be more clear about things
 
 #[allow(non_camel_case_types)]
 #[derive(PartialEq)]
