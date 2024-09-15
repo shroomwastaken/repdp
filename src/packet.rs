@@ -16,7 +16,7 @@ pub struct CmdInfo {
 	pub local_view_angles2: Vec3::<f32>,
 }
 
-// literally the packet packet
+/// Literally the packet packet
 #[derive(Debug)]
 pub struct PPacket {
 	pub cmd_info: CmdInfo,

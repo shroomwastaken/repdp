@@ -37,12 +37,8 @@ fn run() -> anyhow::Result<()> {
 	let start_time: Instant = Instant::now();
 	let demo: demo::Demo = parsing::parse_demo(&mut reader)?;
 
-	let mut dumper: dumper::Dumper = dumper::Dumper {
-		demo: &demo,
-		tabs: 0,
-		out: &mut std::io::stdout().lock(),
-	};
-	dumper.dump_header()?;
+	// TODO: implement switching between stdout and file output
+	dumper::dump_demo(&demo, &mut std::io::stdout().lock())?;
 	println!("\nTook {:?} to parse", Instant::now().duration_since(start_time));
 
 	Ok(())

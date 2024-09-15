@@ -1,10 +1,26 @@
 use std::collections::HashMap;
-use std::fmt::{self, write, Debug, Display, Formatter, Write};
+use std::fmt::{self, Debug, Display, Formatter, Write};
 use macros::AutoParse;
 use crate::parseable::Parseable;
 use crate::game_event::GameEventDescriptor;
-use crate::impl_display;
+use crate::imp_dump_display;
 use crate::packet::Packet;
+
+#[derive(Debug)]
+pub struct Demo {
+	pub header: Header,
+	pub packets: Vec<Packet>
+}
+
+impl Display for Demo {
+	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+		write!(f, "{}\n{}\n", self.info, self.header)?;
+		for packet in self.packets {
+			write!(f, "{}", packet)?;
+		}
+		Ok(())
+	}
+}
 
 /// All major structs are located here
 #[derive(Debug, Clone, AutoParse)]
@@ -27,16 +43,9 @@ pub struct Header {
 	sign_on_length: i32,
 }
 
-impl_display!(Header);
+imp_dump_display!(Header);
 
-#[derive(Debug)]
-pub struct Demo {
-	pub header: Header,
-	pub packets: Vec<Packet>
-}
-
-// extra stuff to help us parse and be more clear about things
-
+/// Extra stuff to help us parse and be more clear about things
 #[allow(non_camel_case_types)]
 #[derive(PartialEq)]
 pub enum Game {
@@ -45,7 +54,7 @@ pub enum Game {
 	PORTAL_STEAMPIPE,
 }
 
-// struct to hold all premade values that differ based on protocol version
+/// Struct to hold all pre-made values that differ based on protocol version
 pub struct DemoInfo {
 	pub net_svc_message_bits: usize,
 	pub net_protocol: i32,
