@@ -27,6 +27,7 @@ pub struct ServerClass {
 
 // -------------helper types end------------------
 
+// TODO: implement Display for each field
 #[derive(Debug)]
 pub enum NetSvcMessage {
 	NetNop,

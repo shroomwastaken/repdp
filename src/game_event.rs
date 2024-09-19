@@ -10,7 +10,7 @@ therefore, when we read an SvcGameEvent we
 */
 
 use std::collections::HashMap;
-
+use std::fmt::{Display, Formatter};
 use crate::parsing::DEMO_INFO;
 use crate::reader::BitReader;
 use crate::parseable::Parseable;
@@ -31,6 +31,14 @@ pub struct GameEventDescriptor {
 	event_id: i16,
 	name: String,
 	key_definitions: HashMap<String, u8>
+}
+
+impl Display for GameEventDescriptor {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		write!(f, "\tEvent Id: {}\n", self.event_id)?;
+		write!(f, "\tName: {}\n", self.name)?;
+		write!(f, "\tKey Definitions: {:?}\n", self.key_definitions)
+	}
 }
 
 impl GameEventDescriptor {

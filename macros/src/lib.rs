@@ -16,7 +16,7 @@ use syn::{
 pub fn impl_parse(item: TokenStream) -> TokenStream {
 	let input: DeriveInput = parse_macro_input!(item as DeriveInput);
 	let struct_ident: &Ident = &input.ident;
-	return match &input.data {
+	match &input.data {
 		Data::Struct(DataStruct {fields, ..}) => {
 			let parsed_fields: Vec<_> = fields
 				.iter()
@@ -49,5 +49,5 @@ pub fn impl_parse(item: TokenStream) -> TokenStream {
 			}.into()
 		},
 		_ => unimplemented!()
-	};
+	}
 }
