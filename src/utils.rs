@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::fmt::{Debug, Display};
 
 use crate::parseable::Parseable;
@@ -6,6 +7,12 @@ use crate::reader::BitReader;
 // miscellaneous smaller structs and useful functions
 
 pub struct Vec3<T> { pub x: T, pub y: T, pub z: T }
+
+impl<T> Vec3<T> {
+	pub fn as_vec(&self) -> Vec<&T> {
+		vec![&self.x, &self.y, &self.z]
+	}
+}
 
 impl<T: Parseable> Parseable for Vec3<T> {
 	fn parse(r: &mut BitReader) -> anyhow::Result<Vec3<T>> {
@@ -27,13 +34,13 @@ impl<T: Parseable> Parseable for Vec3<T> {
 
 impl<T: Display> Display for Vec3<T> {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "{} {} {}", self.x, self.y, self.z)
+		write!(f, "{:>5} {:>5} {:>5}", self.x, self.y, self.z)
 	}
 }
 
 impl<T: Debug> Debug for Vec3<T> {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "{:?} {:?} {:?}", self.x, self.y, self.z)
+		write!(f, "{:>5?} {:>5?} {:>5?}", self.x, self.y, self.z)
 	}
 }
 

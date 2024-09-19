@@ -10,7 +10,7 @@ pub mod data {
 
 #[derive(Debug)]
 pub struct DumperInfo {
-	dumper_version: crate::dumper,
+	dumper_version: String,
 	file_name: String,
 	game_name: String
 }
@@ -42,42 +42,25 @@ pub fn dump_demo(demo: &Demo, out: &mut dyn Write) -> io::Result<()> {
 	out.flush()
 }
 
-/// A shortcut macro for implementing default display configuration for dump structs
-#[macro_export]
-macro_rules! imp_dump_display {
-	($target:ident) => {
-        use crate::get_fields;
-        use crate::print::prettify_field;
-        impl Display for $target {
-            fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-                for (field, value) in get_fields!(self) {
-                    write!(f, "{:<20} {}\n", prettify_field(field), value)?;
-                }
-                Ok(())
-            }
-        }
-    };
-}
-
 /// Returns a HashMap consisting of string field-value pairs from a given struct
 #[macro_export]
 macro_rules! get_fields {
 	($obj:ident) => {{
-		use std::collections::HashMap;
 		let debug = format!("{:#?}", $obj);
+		println!("{}", debug);
 		let debug = debug.split('\n').collect::<Vec<&str>>();
 		// map over every field-value pair except first and last lines
 		let iter = debug[1..debug.len() - 1].iter()
 			.map(|line| {
 				let line = line.trim();
 				// split a single line into a field and its value
-				let (field, val) = line.split_at(line.find(" ").unwrap());
+				let (field, val) = line.split_at(line.find(" ").expect("Invalid debug format"));
 				// cut unnecessary characters and convert both to String
-				let field = prettify_field(field);
+				let field = crate::dumper::prettify_field(field);
 				let val = String::from(&val[1..val.len() - 1]).replace('\"', "");
 				(field, val)
 			});
-		let map: HashMap<String, String> = HashMap::from_iter(iter);
+		let map: std::collections::HashMap<String, String> = std::collections::HashMap::from_iter(iter);
 		map
 	}};
 }

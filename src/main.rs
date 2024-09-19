@@ -9,9 +9,7 @@ mod parseable; // the Parseable trait
 mod packet; // packet types and related types
 mod net_svc_messages; // net/svc message structs
 mod game_event; // for SvcGameEventList/SvcGameEvent
-mod dumper;
-mod print;
-// struct that controls dumping the demo's human-readable contents
+mod dumper; // controls dumping the demo's human-readable contents
 
 use std::time::Instant;
 
