@@ -4,11 +4,11 @@ use std::any::Any;
 use std::fmt::{write, Display, Formatter};
 use crate::utils::Vec3;
 use crate::parseable::Parseable;
-use macros::AutoParse;
+use macros::{AutoParse, Dumpable};
 use crate::{dumper, get_fields};
 use crate::net_svc_messages::NetSvcMessage;
 
-#[derive(Debug, AutoParse)]
+#[derive(Debug, AutoParse, Dumpable)]
 pub struct CmdInfo {
 	pub flags: i32, // TODO: cmd info flags
 	pub view_origin: Vec3::<f32>,
@@ -19,20 +19,20 @@ pub struct CmdInfo {
 	pub local_view_angles2: Vec3::<f32>,
 }
 
-impl Display for CmdInfo {
-	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		write!(f, "\t\tFlags: {:>10}\n", self.flags)?;
-		write!(f, "\t\t{:<20} {:>10}\n", "View Origin:", self.view_origin)?;
-		write!(f, "\t\t{:<20} {:>10}\n", "View Angles:", self.view_angles)?;
-		write!(f, "\t\t{:<20} {:>10}\n", "Local View Angles:", self.local_view_angles)?;
-		write!(f, "\t\t{:<20} {:>10}\n", "View Origin 2:", self.view_origin2)?;
-		write!(f, "\t\t{:<20} {:>10}\n", "View Angles 2:", self.view_angles2)?;
-		write!(f, "\t\t{:<20} {:>10}", "Local View Angles 2:", self.local_view_angles2)
-	}
-}
+// impl Display for CmdInfo {
+// 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+// 		write!(f, "\t\tFlags: {:>10}\n", self.flags)?;
+// 		write!(f, "\t\t{:<20} {:>10}\n", "View Origin:", self.view_origin)?;
+// 		write!(f, "\t\t{:<20} {:>10}\n", "View Angles:", self.view_angles)?;
+// 		write!(f, "\t\t{:<20} {:>10}\n", "Local View Angles:", self.local_view_angles)?;
+// 		write!(f, "\t\t{:<20} {:>10}\n", "View Origin 2:", self.view_origin2)?;
+// 		write!(f, "\t\t{:<20} {:>10}\n", "View Angles 2:", self.view_angles2)?;
+// 		write!(f, "\t\t{:<20} {:>10}", "Local View Angles 2:", self.local_view_angles2)
+// 	}
+// }
 
 /// Literally the packet packet
-#[derive(Debug)]
+#[derive(Debug, Dumpable)]
 pub struct PPacket {
 	pub cmd_info: CmdInfo,
 	pub in_sequence: i32,
@@ -41,19 +41,19 @@ pub struct PPacket {
 	pub messages: Vec<NetSvcMessage>,
 }
 
-impl Display for PPacket {
-	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		write!(f, "\tCmdInfo:\n{}\n", self.cmd_info)?;
-		write!(f, "\t{:<20} {}\n", "In Sequence:", self.in_sequence)?;
-		write!(f, "\t{:<20} {}\n", "Out Sequence:", self.out_sequence)?;
-		write!(f, "\t{:<20} {}\n", "Data Size (bytes):", self.size)?;
-		write!(f, "\tMessages:\n")?;
-		for message in &self.messages {
-			write!(f, "\t\tMessage: {:#?}\n", message)?;
-		}
-		Ok(())
-	}
-}
+// impl Display for PPacket {
+// 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+// 		write!(f, "\t{}", self.cmd_info)?;
+// 		write!(f, "\t{:<20} {}\n", "In Sequence:", self.in_sequence)?;
+// 		write!(f, "\t{:<20} {}\n", "Out Sequence:", self.out_sequence)?;
+// 		write!(f, "\t{:<20} {}\n", "Data Size (bytes):", self.size)?;
+// 		write!(f, "\tMessages:\n")?;
+// 		for message in &self.messages {
+// 			write!(f, "\t\tMessage: {:#?}\n", message)?;
+// 		}
+// 		Ok(())
+// 	}
+// }
 
 #[derive(Debug, AutoParse)]
 pub struct ConsoleCmd {

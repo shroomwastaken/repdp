@@ -34,13 +34,13 @@ impl<T: Parseable> Parseable for Vec3<T> {
 
 impl<T: Display> Display for Vec3<T> {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "{:>5} {:>5} {:>5}", self.x, self.y, self.z)
+		write!(f, "{:>10} {:>10} {:>10}", self.x, self.y, self.z)
 	}
 }
 
 impl<T: Debug> Debug for Vec3<T> {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "{:>5?} {:>5?} {:>5?}", self.x, self.y, self.z)
+		write!(f, "{:>10?} {:>10?} {:>10?}", self.x, self.y, self.z)
 	}
 }
 
