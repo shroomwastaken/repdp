@@ -1,3 +1,6 @@
 /macros/target
 /target
 /test
+/.idea
+
+out.txt

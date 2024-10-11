@@ -2,22 +2,21 @@ extern crate macros;
 
 mod reader; // bit reader struct
 mod error; // custom errors
-mod demo; // major stucts representing the file
+mod demo; // major structs representing the file
 mod parsing; // parsing logic
 mod utils; // various useful things
 mod parseable; // the Parseable trait
 mod packet; // packet types and related types
 mod net_svc_messages; // net/svc message structs
 mod game_event; // for SvcGameEventList/SvcGameEvent
-mod dumper; // struct that controls dumping the demo's human-readable contents
+mod dumper; // controls dumping the demo's human-readable contents
 
 use std::time::Instant;
 
 fn main() {
-	match run() {
-		Ok(_) => {}
-		Err(err) => { println!("{}", err.to_string()) }
-	};
+	if let Err(err) = run() {
+		println!("{}", err.to_string())
+	}
 }
 
 fn run() -> anyhow::Result<()> {
@@ -36,13 +35,9 @@ fn run() -> anyhow::Result<()> {
 	let start_time: Instant = Instant::now();
 	let demo: demo::Demo = parsing::parse_demo(&mut reader)?;
 
-	let mut dumper: dumper::Dumper = dumper::Dumper {
-		demo: &demo,
-		tabs: 0,
-		out: &mut std::io::stdout().lock(),
-	};
-	dumper.dump_header()?;
-	println!("took {:?} to parse", Instant::now().duration_since(start_time));
+	// TODO: implement switching between stdout and file output
+	dumper::dump_demo(&demo, &mut std::io::stdout().lock())?;
+	println!("\nTook {:?} to parse", Instant::now().duration_since(start_time));
 
-	return Ok(());
+	Ok(())
 }
